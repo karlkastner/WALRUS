@@ -31,13 +31,15 @@
 #' 
 WALRUS_loop_long = function(pars, chunk_size=1e4, show_progress=FALSE, name="")
   {
+  print("WARLRUS_loop_long is deprecated since the long runtime bug has been fixed. WALRUS_loop can be called directly instead.")
 
   # Save output_date with different name
   output_date_all <<- output_date
   
   # write table
-  o = data.frame(matrix(nrow=0, ncol=10, dimnames=list(NULL, 
-                 c("ETact","Q","fGS","fQS","dV","dVeq","dG","hQ","hS","W"))))
+  o = matrix(nrow=0, ncol=10, dimnames=list(NULL, 
+                 c("ETact","Q","fGS","fQS","dV","dVeq","dG","hQ","hS","W")))
+
   options(scipen=999)                              # to suppress e-4 notation in data files
   filename = paste0("output/output_temp_",name,".dat")
   write.table(o, filename, row.names=FALSE) 

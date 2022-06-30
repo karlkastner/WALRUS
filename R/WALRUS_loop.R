@@ -30,8 +30,8 @@ WALRUS_loop = function(pars)
   # compute number of o_steps
   L            = length(output_date)  
   # make empty vectors for output states and fluxes
-  o            = data.frame(matrix(nrow=L, ncol=11, dimnames=list(NULL, 
-                 c("ETact","Q","fGS","fQS","dV","dVeq","dG","hQ","hS","W","dt_ok"))))
+  o            = matrix(nrow=L, ncol=11, dimnames=list(NULL, 
+                 c("ETact","Q","fGS","fQS","dV","dVeq","dG","hQ","hS","W","dt_ok")))
     
   # look up soil type parameters
   pars$b          = soil_char[["b"]]      [soil_char[["st"]]==pars$st]
@@ -47,18 +47,18 @@ WALRUS_loop = function(pars)
   # Q[1] is necessary for stepsize-check (if dQ too large)
   if(is.null(pars$Q0)==FALSE)
     {
-      o$Q[1]  = pars$Q0
+      o[1,'Q']  = pars$Q0
     }else{
-      o$Q[1]  = func_Qobs(output_date[2]) / (output_date[2]-output_date[1]) *3600
+      o[1,'Q']  = func_Qobs(output_date[2]) / (output_date[2]-output_date[1]) *3600
     }
 
   # hS from first Q measurement and Qh-relation
   if(is.null(pars$hS0)==FALSE)
   {
-    o$hS[1]  = pars$hS0
+    o[1,'hS']  = pars$hS0
   }else{
-    o$hS[1]  = uniroot(f=function(x){return(
-      get("func_Q_hS", envir=.WALRUSenv)(x,pars,hSmin=func_hSmin(output_date[1]))-o$Q[1])},
+    o[1,'hS']  = uniroot(f=function(x){return(
+      get("func_Q_hS", envir=.WALRUSenv)(x,pars,hSmin=func_hSmin(output_date[1]))-o[1,'Q'])},
       lower=0, upper=pars$cD)$root 
   }
   
@@ -66,47 +66,47 @@ WALRUS_loop = function(pars)
 # dG and hQ    
   if(is.null(pars$dG0)==FALSE)                            # if dG0 provided 
   {
-    o$dG[1] = pars$dG0
+    o[1,'dG'] = pars$dG0
     if(is.null(pars$hQ0)==FALSE)                          # if hQ0 also provided 
     {
-      o$hQ[1] = pars$hQ0
+      o[1,'hQ'] = pars$hQ0
     }else{                                                # if hQ0 not provided 
-      if((pars$cD-o$dG[1])<o$hS[1])                       # if groundwater below surface water level
+      if((pars$cD-o[1,'dG'])<o[1,'hS'])                       # if groundwater below surface water level
       {
-        o$hQ [1] = o$Q[1]*pars$cQ                         # all Q from quickflow
+        o[1,'hQ'] = o[1,'Q']*pars$cQ                         # all Q from quickflow
       }else{                                              # if groundwater above surface water level
-        o$hQ [1] = max(0,(o$Q[1]-(pars$cD-o$dG[1]-o$hS[1])*(pars$cD-o$dG[1])/pars$cG) *pars$cQ)
+        o[1,'hQ'] = max(0,(o[1,'Q']-(pars$cD-o[1,'dG']-o[1,'hS'])*(pars$cD-o[1,'dG'])/pars$cG) *pars$cQ)
       }   
     }
     
   }else if(is.null(pars$dG0)==TRUE & is.null(pars$hQ0)==FALSE) # if hQ0 provided but dG0 not
   {
-    o$hQ[1] = pars$hQ0
-    o$dG[1] = max(0,uniroot(f=function(x){return((pars$cD-x-o$hS[1])*(pars$cD-x)/pars$cG - max((o$Q[1]-o$hQ[1]/pars$cQ),0))},
-                         lower=0, upper=(pars$cD-o$hS[1]))$root)
+    o[1,'hQ'] = pars$hQ0
+    o[1,'dG'] = max(0,uniroot(f=function(x){return((pars$cD-x-o[1,'hS'])*(pars$cD-x)/pars$cG - max((o[1,'Q']-o[1,'hQ']/pars$cQ),0))},
+                         lower=0, upper=(pars$cD-o[1,'hS']))$root)
   }else{                                                 # if dG0 not provided 
     if(is.null(pars$Gfrac)==TRUE){pars$Gfrac=1}          # if Gfrac also not provided, make Gfrac 1
     # if fGS not possible with current hS and cG, make Gfrac smaller
-    while(((pars$cD-o$hS[1])*pars$cD/pars$cG) < (pars$Gfrac*o$Q[1])) {pars$Gfrac = pars$Gfrac/2}
+    while(((pars$cD-o[1,'hS'])*pars$cD/pars$cG) < (pars$Gfrac*o[1,'Q'])) {pars$Gfrac = pars$Gfrac/2}
     # compute dG leading to the right fGS
-    o$dG  [1]  = uniroot(f=function(x){return((pars$cD-x-o$hS[1])*(pars$cD-x)/pars$cG - o$Q[1]*pars$Gfrac)},
-                         lower=0, upper=(pars$cD-o$hS[1]))$root
-    o$hQ  [1]  = o$Q[1] *(1-pars$Gfrac) *pars$cQ    
+    o[1,'dG']  = uniroot(f=function(x){return((pars$cD-x-o[1,'hS'])*(pars$cD-x)/pars$cG - o[1,'Q']*pars$Gfrac)},
+                         lower=0, upper=(pars$cD-o[1,'hS']))$root
+    o[1,'hQ']  = o[1,'Q'] *(1-pars$Gfrac) *pars$cQ    
   }
 
   # dVeq
-  o$dVeq [1]  = get("func_dVeq_dG", envir=.WALRUSenv)(o$dG[1], pars)   
+  o[1,'dVeq']  = get("func_dVeq_dG", envir=.WALRUSenv)(o[1,'dG'], pars)   
   
   # dV
   if(is.null(pars$dV0)==FALSE)
   {
-    o$dV[1]  = pars$dV0
+    o[1,'dV']  = pars$dV0
   }else{
-    o$dV[1]  = o$dVeq[1]
+    o[1,'dV']  = o[1,'dVeq']
   }
 
   # W
-  o$W    [1]  = get("func_W_dV", envir=.WALRUSenv)(o$dV[1], pars)
+  o[1,'W']  = get("func_W_dV", envir=.WALRUSenv)(o[1,'dV'], pars)
 
   # prepare for-loop
   o_step       = o[1,]
@@ -125,9 +125,10 @@ WALRUS_loop = function(pars)
     # as long as you're not at the end of the original time_step yet
     while(start_step < (output_date[t] - p_num$min_timestep))
     {
-      o_step[1,]   = WALRUS_step(pars=pars, i=i, t1=start_step, t2=end_step)
+      o_step   = WALRUS_step(pars=pars, i=i, t1=start_step, t2=end_step)
       # if time step too large (and not very small)
-      if((o_step$dt_ok == FALSE) & ((end_step-start_step) > p_num$min_timestep))         
+
+      if((o_step['dt_ok'] == FALSE) & ((end_step-start_step) > p_num$min_timestep))         
       {
         end_step   = (start_step + end_step)/2         # decrease step and run model
       }else{                                           # if one step completed (dt small enough)
@@ -144,9 +145,11 @@ WALRUS_loop = function(pars)
         
   # remove dt_ok column
   o = o[,1:10]
-  
+
+  o = as.data.frame(o);    
   return(o)
   } # end function
 
 # compile to decrease runtime
 WALRUS_loop  = cmpfun(WALRUS_loop)
+

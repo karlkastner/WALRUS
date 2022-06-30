@@ -43,23 +43,23 @@ WALRUS_step = function(pars, i, t1, t2)
   dt_ok   = TRUE                       # stepsize small enough as default
 
   ### FLUXES (based on states from the start of this timestep [mm/timestep])
-  PQ      = P_t * i$W                                             *pars$aG
-  PV      = P_t * (1-i$W)                                         *pars$aG  
+  PQ      = P_t * i['W']                                             *pars$aG
+  PV      = P_t * (1-i['W'])                                         *pars$aG  
   PS      = P_t                                                   *pars$aS 
-  ETV     = ETpot_t * get("func_beta_dV", envir=.WALRUSenv)(i$dV) *pars$aG
+  ETV     = ETpot_t * get("func_beta_dV", envir=.WALRUSenv)(i['dV']) *pars$aG
   ETS     = ETpot_t                                               *pars$aS
-  if(i$hS < p_num$min_h*1000){ETS = 0}        # no ET from empty channel
+  if(i['hS'] < p_num$min_h*1000){ETS = 0}        # no ET from empty channel
   ETact   = ETV + ETS  
-  fQS     = i$hQ / pars$cQ *dt
-  fGS     = (pars$cD - i$dG - i$hS) * max((pars$cD - i$dG),i$hS) /pars$cG *dt
-  Q       = get("func_Q_hS", envir=.WALRUSenv)(i$hS, pars=pars, hSmin=hSmin_t) *dt
+  fQS     = i['hQ'] / pars$cQ *dt
+  fGS     = (pars$cD - i['dG'] - i['hS']) * max((pars$cD - i['dG']),i['hS']) /pars$cG *dt
+  Q       = get("func_Q_hS", envir=.WALRUSenv)(i['hS'], pars=pars, hSmin=hSmin_t) *dt
   
   ### STATES (at the end of this time step / start of next time step) [mm])
   # note that fluxes are already for the whole time step (multiplied with dt)
-  dV      = i$dV  - (fXG_t + PV - ETV - fGS          )            /pars$aG
-  hQ      = i$hQ  + (PQ - fQS                        )            /pars$aG
-  hS      = i$hS  + (fXS_t + PS - ETS + fGS + fQS - Q)            /pars$aS 
-  dG      = i$dG  + (i$dV - i$dVeq) /pars$cV *dt       
+  dV      = i['dV']  - (fXG_t + PV - ETV - fGS          )            /pars$aG
+  hQ      = i['hQ']  + (PQ - fQS                        )            /pars$aG
+  hS      = i['hS']  + (fXS_t + PS - ETS + fGS + fQS - Q)            /pars$aS 
+  dG      = i['dG']  + (i['dV'] - i['dVeq']) /pars$cV *dt       
   
   
   ### SPECIAL CASE: LARGE-SCALE PONDING AND FLOODING
@@ -95,13 +95,13 @@ WALRUS_step = function(pars, i, t1, t2)
   }else if(P_t > p_num$max_P_step)                  # if too much rainfall added
   {
     dt_ok = FALSE 
-  }else if(abs(i$Q-Q) > p_num$max_dQ_step)          # if change in Q too big
+  }else if(abs(i['Q']-Q) > p_num$max_dQ_step)          # if change in Q too big
   {
     dt_ok = FALSE
-  }else if(abs(i$hS-hS) > p_num$max_h_change)   # if change in hS too big
+  }else if(abs(i['hS']-hS) > p_num$max_h_change)   # if change in hS too big
   {
     dt_ok = FALSE
-  }else if(abs(i$dG-dG) > p_num$max_h_change)   # if change in dG too big
+  }else if(abs(i['dG']-dG) > p_num$max_h_change)   # if change in dG too big
   {
     dt_ok = FALSE
   } 
@@ -112,7 +112,12 @@ WALRUS_step = function(pars, i, t1, t2)
   dVeq   = get("func_dVeq_dG", envir=.WALRUSenv)(dG,pars)
     
   # bind output together in a vector
-  return(c(ETact, Q, fGS, fQS, dV, dVeq, dG, hQ, hS, W, dt_ok))
+  # shortcut does not work for some reason: 
+  # cc = c(ETact=ETact, Q=Q, fGS=fGS, fQS=fQS, dV=dV, dVeq=dVeq, dG=dG, hQ=hQ, hS=hS, W=W, dt_ok=dt_ok)
+  cc = c(ETact, Q, fGS, fQS, dV, dVeq, dG, hQ, hS, W, dt_ok)
+  names(cc) = c('ETact', 'Q', 'fGS', 'fQS', 'dV', 'dVeq', 'dG', 'hQ', 'hS', 'W', 'dt_ok')
+  return(cc)
+
   
 } # end function
 
