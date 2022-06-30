@@ -34,6 +34,9 @@
 WALRUS_postprocessing = function(o, pars, n, figures=TRUE, residuals=FALSE)
 {
   
+  if (!dir.exists('output')) dir.create('output');
+  if (!dir.exists('figures')) dir.create('figures');
+  
   # write output file
   o_new = WALRUS_output_file(o, n)
   
