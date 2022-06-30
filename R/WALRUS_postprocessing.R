@@ -31,14 +31,14 @@
 #' @examples
 #' x=1
 #' 
-WALRUS_postprocessing = function(o, pars, n, figures=TRUE, residuals=FALSE)
+WALRUS_postprocessing = function(o, pars, n, figures=TRUE, residuals=FALSE, extra_digits=0)
 {
-  
+
   if (!dir.exists('output')) dir.create('output');
   if (!dir.exists('figures')) dir.create('figures');
   
   # write output file
-  o_new = WALRUS_output_file(o, n)
+  o_new = WALRUS_output_file(o, n, extra_digits)
   
   # compute goodness of fit and update parameter list
   p_new = WALRUS_GoF(o_new, pars, n) 

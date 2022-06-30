@@ -26,7 +26,7 @@
 #' @examples
 #' x=1
 #' 
-WALRUS_output_file = function(o, n)
+WALRUS_output_file = function(o, n, extra_digits = 0)
 {
   
   # expand output data frame
@@ -45,28 +45,28 @@ WALRUS_output_file = function(o, n)
   fXS        = c(NA,func_fXS  (step_end) - func_fXS  (step_start))
   hSmin      = func_hSmin(output_date)
   dGobs      = func_dGobs (output_date)
-      
+
   # make data frame with forcing and model output
   o = data.frame(cbind(
       d    = output_date     , 
       date                   , 
-      P    = round(P      ,4), 
-      ETpot= round(ETpot  ,4), 
-      Qobs = round(Qobs   ,4), 
-      fXG  = round(fXG    ,4), 
-      fXS  = round(fXS    ,4), 
-      hSmin= round(hSmin  ,2), 
-      dGobs= round(dGobs  ,2),
-      ETact= round(o$ETact,4), 
-      Q    = round(o$Q    ,4),  
-      fGS  = round(o$fGS  ,4), 
-      fQS  = round(o$fQS  ,4), 
-      dV   = round(o$dV   ,2), 
-      dVeq = round(o$dVeq ,2), 
-      dG   = round(o$dG   ,2), 
-      hQ   = round(o$hQ   ,2), 
-      hS   = round(o$hS   ,2), 
-      W    = round(o$W    ,4)))
+      P    = round(P      ,4+extra_digits), 
+      ETpot= round(ETpot  ,4+extra_digits), 
+      Qobs = round(Qobs   ,4+extra_digits), 
+      fXG  = round(fXG    ,4+extra_digits), 
+      fXS  = round(fXS    ,4+extra_digits), 
+      hSmin= round(hSmin  ,2+extra_digits), 
+      dGobs= round(dGobs  ,2+extra_digits),
+      ETact= round(o$ETact,4+extra_digits), 
+      Q    = round(o$Q    ,4+extra_digits),  
+      fGS  = round(o$fGS  ,4+extra_digits), 
+      fQS  = round(o$fQS  ,4+extra_digits), 
+      dV   = round(o$dV   ,2+extra_digits), 
+      dVeq = round(o$dVeq ,2+extra_digits), 
+      dG   = round(o$dG   ,2+extra_digits), 
+      hQ   = round(o$hQ   ,2+extra_digits), 
+      hS   = round(o$hS   ,2+extra_digits), 
+      W    = round(o$W    ,4+extra_digits)))
     
   # cut off the warming-up period
   o = o[warming_up_idx:L,] # keep initial values for balance computation, so if no warming up period, it will keep the whole vector
