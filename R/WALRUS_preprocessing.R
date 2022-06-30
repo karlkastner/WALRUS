@@ -117,7 +117,10 @@ WALRUS_preprocessing = function(f, dt, timestamp="start")
   # make output date vector and belonging function
   nr               =   floor((length(forcing_date)-1)/dt)
   idx              =   c(1,seq(2,((nr*dt+1)),dt))
-  output_date      <<- forcing_date[idx]
+  xy               = approx(seq(1,length(forcing_date)), forcing_date, idx, method = "linear");
+  output_date      <<- xy$y;
+
   warming_up_idx   <<- which(output_date >= (output_date[2] + f$warm[1]*3600))[1] -1 # so 1 if no warming up period
   
 }
+
